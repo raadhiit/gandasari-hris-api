@@ -15,7 +15,6 @@ class AttendanceSyncController extends Controller
     public function index(AttendanceSyncRequest $request): JsonResponse
     {
         $lastId = $request->integer('lastAttendanceId');
-
         $limit = $request->integer(
             'limit',
             self::DEFAULT_LIMIT
@@ -23,6 +22,23 @@ class AttendanceSyncController extends Controller
 
         $rows = AttendanceLog::query()
             ->from('att_logs as attendance')
+            ->leftJoin(
+                'employees as employee',
+                'employee.id',
+                '=',
+                'attendance.user_pin'
+            )
+            ->leftJoin('device_users as machine_user', function ($join) {
+                $join->on(
+                    'machine_user.device_id',
+                    '=',
+                    'attendance.device_id'
+                )->on(
+                    'machine_user.pin',
+                    '=',
+                    'attendance.user_pin'
+                );
+            })
             ->leftJoin(
                 'devices as device',
                 'device.id',
@@ -35,20 +51,16 @@ class AttendanceSyncController extends Controller
                 '=',
                 'device.area_id'
             )
-            ->leftJoin(
-                'employees as e',
-                'e.id',
-                '=',
-                'attendance.user_pin'
-            )
             ->select([
                 'attendance.id as attendance_id',
-                'e.daidan_nik',
-                'attendance.user_pin as employee_id',
-                'attendance.user_pin as machine_user_id',
+                'attendance.user_pin as attendance_user_pin',
                 'attendance.timestamp',
                 'attendance.status',
                 'attendance.device_id',
+                'employee.id as employee_id',
+                'employee.daidan_nik',
+                'machine_user.id as device_user_id',
+                'machine_user.pin as machine_user_id',
                 'area.name as site_code',
             ])
             ->where('attendance.id', '>', $lastId)
@@ -69,18 +81,20 @@ class AttendanceSyncController extends Controller
             ),
             'hasMore' => $hasMore,
             'data' => $data->map(
-                fn (AttendanceLog $attendance): array => [
+                fn(AttendanceLog $attendance): array => [
                     'attendanceId' => (int) $attendance->attendance_id,
-                    'daidanNik' => (string) $attendance->daidan_nik,
+                    'daidanNik' => $attendance->daidan_nik !== null
+                        ? (string) $attendance->daidan_nik
+                        : null,
                     'employeeId' => (string) $attendance->employee_id,
-                    'attendanceTime' => $attendance->timestamp->format('Y-m-d\TH:i:s'),
-                    'attendanceType' => $this->resolveAttendanceType($attendance->status),
+                    'attendanceTime' => $attendance->timestamp
+                        ->format('Y-m-d\TH:i:s'),
+                    'attendanceType' => $this->resolveAttendanceType(
+                        (int) $attendance->status
+                    ),
                     'machineUserId' => (string) $attendance->machine_user_id,
                     'deviceId' => (string) $attendance->device_id,
-                    'siteCode' => $attendance->site_code
-                        ?? throw new UnexpectedValueException(
-                            "Site mapping not found for attendance ID {$attendance->attendance_id}."
-                        ),
+                    'siteCode' => (string) $attendance->site_code,
                 ]
             )->all(),
         ]);
