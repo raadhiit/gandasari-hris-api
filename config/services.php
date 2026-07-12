@@ -34,5 +34,8 @@ return [
             'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
     ],
+    'daidan' => [
+        'api_key_hash' => env('DAIDAN_API_KEY_HASH'),
+    ],
 
 ];
