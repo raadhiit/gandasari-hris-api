@@ -28,17 +28,23 @@ class AttendanceSyncController extends Controller
                 '=',
                 'attendance.user_pin'
             )
-            ->leftJoin('device_users as machine_user', function ($join) {
-                $join->on(
-                    'machine_user.device_id',
-                    '=',
-                    'attendance.device_id'
-                )->on(
-                    'machine_user.pin',
-                    '=',
-                    'attendance.user_pin'
-                );
-            })
+            // ->leftJoin(
+            //     'device_employee as de', 
+            //     'de.employee_id', 
+            //     '=', 
+            //     'employee.id'
+            // )
+            // ->leftJoin('device_users as machine_user', function ($join) {
+            //     $join->on(
+            //         'machine_user.device_id',
+            //         '=',
+            //         'attendance.device_id'
+            //     )->on(
+            //         'machine_user.pin',
+            //         '=',
+            //         'attendance.user_pin'
+            //     );
+            // })
             ->leftJoin(
                 'devices as device',
                 'device.id',
@@ -59,8 +65,10 @@ class AttendanceSyncController extends Controller
                 'attendance.device_id',
                 'employee.id as employee_id',
                 'employee.daidan_nik',
-                'machine_user.id as device_user_id',
-                'machine_user.pin as machine_user_id',
+                // 'de.employee_id as machine_user_id',
+                'attendance.user_pin as machine_user_id',
+                // 'machine_user.id as device_user_id',
+                // 'machine_user.pin as machine_user_id',
                 'area.name as site_code',
             ])
             ->where('attendance.id', '>', $lastId)
@@ -105,6 +113,11 @@ class AttendanceSyncController extends Controller
         return match ($status) {
             0 => 'IN',
             1 => 'OUT',
+            2 => 'Break-In',
+            3 => 'Break-Out',
+            4 => 'Overtime-In',
+            5 => 'Overtime-Out',
+            255 => 'raw/unknown',
 
             default => throw new UnexpectedValueException(
                 "Unsupported attendance status: {$status}."

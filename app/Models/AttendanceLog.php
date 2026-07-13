@@ -16,8 +16,8 @@ class AttendanceLog extends Model
         return [
             'timestamp' => 'datetime',
             'status' => 'integer',
-            'device_id' => 'integer',
-            'user_pin' => 'integer',
+            'verify_mode' => 'integer',
+            'work_code' => 'integer',
         ];
     }
 
