@@ -16,6 +16,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'daidan.api.key' => ValidateDaidanApiKey::class,
         ]);
+        $middleware->validateCsrfTokens(except: [
+            'iclock/*',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
