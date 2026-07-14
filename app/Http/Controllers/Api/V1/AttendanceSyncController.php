@@ -59,17 +59,16 @@ class AttendanceSyncController extends Controller
             )
             ->select([
                 'attendance.id as attendance_id',
-                'attendance.user_pin as attendance_user_pin',
                 'attendance.timestamp',
                 'attendance.status',
                 'attendance.device_id',
                 'employee.id as employee_id',
                 'employee.daidan_nik',
-                // 'de.employee_id as machine_user_id',
                 'attendance.user_pin as machine_user_id',
+                'area.name as site_code',
+                // 'de.employee_id as machine_user_id',
                 // 'machine_user.id as device_user_id',
                 // 'machine_user.pin as machine_user_id',
-                'area.name as site_code',
             ])
             ->where('attendance.id', '>', $lastId)
             ->orderBy('attendance.id')

@@ -11,12 +11,10 @@ use Illuminate\Support\Facades\DB;
 
 class EmployeeProvisioningController extends Controller
 {
-    public function upsert(
-        UpsertEmployeeRequest $request
-    ): JsonResponse {
+    public function upsert( UpsertEmployeeRequest $request): JsonResponse 
+    {
         try {
-            $result = DB::transaction(
-                function () use ($request): array {
+            $result = DB::transaction( function () use ($request): array {
                     $daidanNik = $request->daidanNik();
 
                     $gandasariHrisId = $request->gandasariHrisId();
