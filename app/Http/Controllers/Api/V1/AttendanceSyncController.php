@@ -10,7 +10,7 @@ use UnexpectedValueException;
 
 class AttendanceSyncController extends Controller
 {
-    private const DEFAULT_LIMIT = 500;
+    private const DEFAULT_LIMIT = 1000;
 
     public function index(AttendanceSyncRequest $request): JsonResponse
     {

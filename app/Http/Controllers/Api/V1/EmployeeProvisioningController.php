@@ -98,8 +98,7 @@ class EmployeeProvisioningController extends Controller
                 return response()->json([
                     'success' => false,
                     'code' => 'EMPLOYEE_DATA_CONFLICT',
-                    'message' =>
-                        'One or more unique employee fields are already used by another employee.',
+                    'message' => 'One or more unique employee fields are already used by another employee.',
                 ], 409);
             }
 

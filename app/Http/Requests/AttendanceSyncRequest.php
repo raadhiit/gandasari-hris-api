@@ -32,7 +32,7 @@ class AttendanceSyncRequest extends FormRequest
                 'nullable',
                 'integer',
                 'min:1',
-                'max:500',
+                'max:1000',
             ]
         ];
     }
@@ -46,7 +46,7 @@ class AttendanceSyncRequest extends FormRequest
 
             'limit.integer' => 'limit must be an integer.',
             'limit.min' => 'limit must be at least 1.',
-            'limit.max' => 'limit may not be greater than 500.',
+            'limit.max' => 'limit may not be greater than 1000.',
         ];
     }
 }
