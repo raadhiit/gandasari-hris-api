@@ -11,10 +11,11 @@ use Illuminate\Support\Facades\DB;
 
 class EmployeeProvisioningController extends Controller
 {
-    public function upsert( UpsertEmployeeRequest $request): JsonResponse 
+    public function upsert(UpsertEmployeeRequest $request): JsonResponse
     {
         try {
-            $result = DB::transaction( function () use ($request): array {
+            $result = DB::transaction(
+                function () use ($request): array {
                     $daidanNik = $request->daidanNik();
 
                     $gandasariHrisId = $request->gandasariHrisId();
@@ -24,47 +25,45 @@ class EmployeeProvisioningController extends Controller
                         ->lockForUpdate()
                         ->first();
 
-                    $employeeByGandasariId =$gandasariHrisId !== null
-                                            ? Employee::query()
-                                                ->whereKey($gandasariHrisId)
-                                                ->lockForUpdate()
-                                                ->first()
-                                            : null;
+                    $employeeByGandasariId = $gandasariHrisId !== null
+                        ? Employee::query()
+                        ->whereKey($gandasariHrisId)
+                        ->lockForUpdate()
+                        ->first()
+                        : null;
 
-                    if ( $gandasariHrisId !== null && $employeeByGandasariId === null) {
+                    if ($gandasariHrisId !== null && $employeeByGandasariId === null) {
                         return [
                             'error' => [
                                 'status' => 404,
                                 'code' =>
-                                    'GANDASARI_EMPLOYEE_NOT_FOUND',
+                                'GANDASARI_EMPLOYEE_NOT_FOUND',
                                 'message' =>
-                                    'Gandasari HRIS employee was not found.',
+                                'Gandasari HRIS employee was not found.',
                             ],
                         ];
                     }
 
-                    if ($employeeByDaidanNik !== null && $employeeByGandasariId !== null && ! $employeeByDaidanNik->is($employeeByGandasariId)) 
-                    {
+                    if ($employeeByDaidanNik !== null && $employeeByGandasariId !== null && ! $employeeByDaidanNik->is($employeeByGandasariId)) {
                         return [
                             'error' => [
                                 'status' => 409,
                                 'code' =>
-                                    'EMPLOYEE_IDENTITY_CONFLICT',
+                                'EMPLOYEE_IDENTITY_CONFLICT',
                                 'message' =>
-                                    'Daidan NIK and Gandasari HRIS ID refer to different employees.',
+                                'Daidan NIK and Gandasari HRIS ID refer to different employees.',
                             ],
                         ];
                     }
 
-                    if ($employeeByGandasariId !== null && $employeeByGandasariId->card_number !== null && $employeeByGandasariId->card_number !== $daidanNik) 
-                    {
+                    if ($employeeByGandasariId !== null && $employeeByGandasariId->card_number !== null && $employeeByGandasariId->card_number !== $daidanNik) {
                         return [
                             'error' => [
                                 'status' => 409,
                                 'code' =>
-                                    'EMPLOYEE_IDENTITY_CONFLICT',
+                                'EMPLOYEE_IDENTITY_CONFLICT',
                                 'message' =>
-                                    'The Gandasari HRIS employee is already linked to another Daidan NIK.',
+                                'The Gandasari HRIS employee is already linked to another Daidan NIK.',
                             ],
                         ];
                     }
@@ -119,12 +118,12 @@ class EmployeeProvisioningController extends Controller
         return response()->json([
             'success' => true,
             'action' => $result['action'],
-                'data' => [
-                    'gandasariHrisId' => (int) $employee->id,
-                    'daidanNik' => $employee->card_number,
-                    'updatedAt' => $employee->updated_at
-                        ?->format('Y-m-d\TH:i:s'),
-                ],
+            'data' => [
+                'gandasariHrisId' => (int) $employee->id,
+                'daidanNik' => $employee->card_number,
+                'updatedAt' => $employee->updated_at
+                    ?->format('Y-m-d\TH:i:s'),
+            ],
         ], $result['action'] === 'created' ? 201 : 200);
     }
 }
