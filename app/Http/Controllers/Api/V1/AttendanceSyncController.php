@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\AttendanceSyncRequest;
-use App\Models\AttendanceLog;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\DB;
 use UnexpectedValueException;
 
 class AttendanceSyncController extends Controller
@@ -20,8 +20,7 @@ class AttendanceSyncController extends Controller
             self::DEFAULT_LIMIT
         );
 
-        $rows = AttendanceLog::query()
-            ->from('att_logs as attendance')
+        $rows = DB::table('att_logs as attendance')
             ->leftJoin(
                 'employees as employee',
                 'employee.id',
@@ -42,7 +41,7 @@ class AttendanceSyncController extends Controller
             )
             ->select([
                 'attendance.id as attendance_id',
-                'attendance.timestamp',
+                DB::raw("DATE_FORMAT(attendance.timestamp, '%Y-%m-%dT%H:%i:%s') as attendance_time"),
                 'attendance.status',
                 'attendance.device_id',
                 'employee.id as employee_id',
@@ -56,36 +55,40 @@ class AttendanceSyncController extends Controller
             ->get();
 
         $hasMore = $rows->count() > $limit;
+        $data = [];
+        $lastAttendanceId = $lastId;
 
-        $data = $rows
-            ->take($limit)
-            ->values();
+        foreach ($rows as $index => $attendance) {
+            if ($index >= $limit) {
+                break;
+            }
+
+            $lastAttendanceId = (int) $attendance->attendance_id;
+
+            $data[] = [
+                'attendanceId' => $lastAttendanceId,
+                'daidanNik' => $attendance->daidan_nik !== null
+                    ? (string) $attendance->daidan_nik
+                    : null,
+                'employeeId' => (string) $attendance->employee_id,
+                'attendanceTime' => $attendance->attendance_time,
+                'attendanceType' => $this->resolveAttendanceType(
+                    (int) $attendance->status
+                ),
+                'machineUserId' => (string) $attendance->machine_user_id,
+                'deviceId' => (string) $attendance->device_id,
+                'siteCode' => (string) $attendance->site_code,
+            ];
+        }
 
         return response()->json([
             'success' => true,
-            'lastAttendanceId' => (int) (
-                $data->last()?->attendance_id ?? $lastId
-            ),
+            'lastAttendanceId' => $lastAttendanceId,
             'hasMore' => $hasMore,
-            'data' => $data->map(
-                fn(AttendanceLog $attendance): array => [
-                    'attendanceId' => (int) $attendance->attendance_id,
-                    'daidanNik' => $attendance->daidan_nik !== null
-                        ? (string) $attendance->daidan_nik
-                        : null,
-                    'employeeId' => (string) $attendance->employee_id,
-                    'attendanceTime' => $attendance->timestamp
-                        ->format('Y-m-d\TH:i:s'),
-                    'attendanceType' => $this->resolveAttendanceType(
-                        (int) $attendance->status
-                    ),
-                    'machineUserId' => (string) $attendance->machine_user_id,
-                    'deviceId' => (string) $attendance->device_id,
-                    'siteCode' => (string) $attendance->site_code,
-                ]
-            )->all(),
+            'data' => $data,
         ]);
     }
+
 
     private function resolveAttendanceType(int $status): string
     {
