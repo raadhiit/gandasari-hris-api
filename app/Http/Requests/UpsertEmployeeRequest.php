@@ -23,17 +23,17 @@ class UpsertEmployeeRequest extends FormRequest
     {
         return [
             'daidanNik' => [
-                'required',
+                'nullable',
                 'string',
                 'max:50',
             ],
 
-            /*
-             * Opsional.
-             *
-             * Dikirim ketika Daidan ingin menghubungkan employee
-             * lama Gandasari yang daidan_nik-nya masih null.
-             */
+            'card_number' => [
+                'required',
+                'string',
+                'max:20',
+            ],
+
             'gandasariHrisId' => [
                 'nullable',
                 'integer',
@@ -170,15 +170,6 @@ class UpsertEmployeeRequest extends FormRequest
         $attributes = [];
 
         foreach ($fieldMapping as $requestField => $databaseColumn) {
-            /*
-             * array_key_exists membuat:
-             *
-             * field tidak dikirim
-             * → data lama tidak berubah
-             *
-             * field dikirim null
-             * → kolom database dikosongkan
-             */
             if (array_key_exists($requestField, $validated)) {
                 $attributes[$databaseColumn] =
                     $validated[$requestField];

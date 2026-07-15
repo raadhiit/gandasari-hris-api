@@ -20,7 +20,7 @@ class EmployeeProvisioningController extends Controller
                     $gandasariHrisId = $request->gandasariHrisId();
 
                     $employeeByDaidanNik = Employee::query()
-                        ->where('daidan_nik', $daidanNik)
+                        ->where('card_number', $daidanNik)
                         ->lockForUpdate()
                         ->first();
 
@@ -56,7 +56,7 @@ class EmployeeProvisioningController extends Controller
                         ];
                     }
 
-                    if ($employeeByGandasariId !== null && $employeeByGandasariId->daidan_nik !== null && $employeeByGandasariId->daidan_nik !== $daidanNik) 
+                    if ($employeeByGandasariId !== null && $employeeByGandasariId->card_number !== null && $employeeByGandasariId->card_number !== $daidanNik) 
                     {
                         return [
                             'error' => [
@@ -76,7 +76,7 @@ class EmployeeProvisioningController extends Controller
                         $employee = new Employee();
                     }
 
-                    $employee->daidan_nik = $daidanNik;
+                    $employee->card_number = $daidanNik;
                     $employee->fill($request->employeeAttributes());
                     $changed = $employee->isDirty();
                     $employee->save();
@@ -120,12 +120,12 @@ class EmployeeProvisioningController extends Controller
         return response()->json([
             'success' => true,
             'action' => $result['action'],
-            'data' => [
-                'gandasariHrisId' => (int) $employee->id,
-                'daidanNik' => $employee->daidan_nik,
-                'updatedAt' => $employee->updated_at
-                    ?->format('Y-m-d\TH:i:s'),
-            ],
+                'data' => [
+                    'gandasariHrisId' => (int) $employee->id,
+                    'daidanNik' => $employee->card_number,
+                    'updatedAt' => $employee->updated_at
+                        ?->format('Y-m-d\TH:i:s'),
+                ],
         ], $result['action'] === 'created' ? 201 : 200);
     }
 }

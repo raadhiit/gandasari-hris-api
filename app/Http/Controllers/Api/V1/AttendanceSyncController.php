@@ -28,23 +28,6 @@ class AttendanceSyncController extends Controller
                 '=',
                 'attendance.user_pin'
             )
-            // ->leftJoin(
-            //     'device_employee as de', 
-            //     'de.employee_id', 
-            //     '=', 
-            //     'employee.id'
-            // )
-            // ->leftJoin('device_users as machine_user', function ($join) {
-            //     $join->on(
-            //         'machine_user.device_id',
-            //         '=',
-            //         'attendance.device_id'
-            //     )->on(
-            //         'machine_user.pin',
-            //         '=',
-            //         'attendance.user_pin'
-            //     );
-            // })
             ->leftJoin(
                 'devices as device',
                 'device.id',
@@ -63,12 +46,9 @@ class AttendanceSyncController extends Controller
                 'attendance.status',
                 'attendance.device_id',
                 'employee.id as employee_id',
-                'employee.daidan_nik',
+                'employee.card_number as daidan_nik',
                 'attendance.user_pin as machine_user_id',
                 'area.name as site_code',
-                // 'de.employee_id as machine_user_id',
-                // 'machine_user.id as device_user_id',
-                // 'machine_user.pin as machine_user_id',
             ])
             ->where('attendance.id', '>', $lastId)
             ->orderBy('attendance.id')
