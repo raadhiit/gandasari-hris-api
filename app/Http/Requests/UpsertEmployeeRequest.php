@@ -29,7 +29,7 @@ class UpsertEmployeeRequest extends FormRequest
             ],
 
             'card_number' => [
-                'required',
+                'nullable',
                 'string',
                 'max:20',
             ],
